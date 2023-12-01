@@ -1,0 +1,51 @@
+const int lm35Pin = A0;  // LM35 temperature sensor connected to Analog pin A0
+const int ledPin = 13;   // Onboard LED connected to Digital pin 13
+
+const int belowThresholdBlinkInterval = 250;  // Blink interval when temperature is below 30°C
+const int aboveThresholdBlinkInterval = 500;  // Blink interval when temperature is above 30°C
+const int temperatureThreshold = 30;         // Temperature threshold in degrees Celsius
+
+int ledState = LOW;              // Variable to store the current state of the LED
+unsigned long previousMillis = 0;  // Variable to store the last time LED was updated
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  int temperature = readTemperature();
+  Serial.println("Temperature: " + String(temperature) + "°C");
+
+  unsigned long currentMillis = millis();
+
+  if (temperature < temperatureThreshold) {
+    // Blink LED every 250 milliseconds
+    blinkLED(currentMillis, belowThresholdBlinkInterval);
+  } else {
+    // Blink LED every 500 milliseconds
+    blinkLED(currentMillis, aboveThresholdBlinkInterval);
+  }
+}
+
+int readTemperature() {
+  // Read analog value from LM35 and convert it to temperature in Celsius
+  int sensorValue = analogRead(lm35Pin);
+  float voltage = sensorValue * (5.0 / 1023.0);
+  float temperatureC = (voltage - 0.5) * 100.0;
+  return int(temperatureC);
+}
+
+void blinkLED(unsigned long currentMillis, int interval) {
+  // State machine to blink LED based on the specified interval
+  if (currentMillis - previousMillis >= interval) {
+    // Save the last time LED was blinked
+    previousMillis = currentMillis;
+
+    // Toggle the LED state
+    ledState = !ledState;
+
+    // Apply the new LED state
+    digitalWrite(ledPin, ledState);
+  }
+}
